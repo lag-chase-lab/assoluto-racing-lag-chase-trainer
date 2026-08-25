@@ -1,0 +1,19 @@
+.DS_Store
+*.log
+
+# Local builds
+build/
+Assoluto A-D Key Mapper.app/
+
+# Personal, machine-specific runbook retained locally
+Assoluto_Racing_比較録画_手順.md
+
+# Android/IDE local state
+.idea/
+.android/
+local.properties
+
+# Windows temporary files
+*.lnk
+Thumbs.db
+Desktop.ini

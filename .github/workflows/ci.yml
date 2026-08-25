@@ -1,0 +1,47 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  macos:
+    name: macOS scripts and key mapper
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate plist
+        run: plutil -lint AssolutoKeyMapper/Info.plist
+      - name: Type-check Swift source
+        run: xcrun swiftc -typecheck -framework AppKit -framework ApplicationServices AssolutoKeyMapper/main.swift
+      - name: Validate zsh syntax
+        run: zsh -n start_assoluto_android.sh start_assoluto_mac.sh scripts/macos/*.sh
+
+  powershell:
+    name: PowerShell syntax
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Parse PowerShell scripts
+        shell: pwsh
+        run: |
+          $allErrors = @()
+          Get-ChildItem -Recurse -Filter *.ps1 | ForEach-Object {
+            $tokens = $null
+            $errors = $null
+            [System.Management.Automation.Language.Parser]::ParseFile(
+              $_.FullName,
+              [ref]$tokens,
+              [ref]$errors
+            ) | Out-Null
+            foreach ($parseError in $errors) {
+              $allErrors += "$($_.FullName):$($parseError.Extent.StartLineNumber): $($parseError.Message)"
+            }
+          }
+          if ($allErrors.Count -gt 0) {
+            $allErrors | ForEach-Object { Write-Error $_ }
+            exit 1
+          }
